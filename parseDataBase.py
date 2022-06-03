@@ -14,7 +14,7 @@ from parseRespEvents import parseRespEvents
 from parseSignalsEdf import parseSignalsEdf
 from parseSleepStages import parseSleepStages
 
-ROOT_PATH = '/home/jrestrepo/Dropbox/inv/sleepDb/data'
+ROOT_PATH = './data'
 EDF_PATH = f'{ROOT_PATH}/edf'
 CSV_PATH = f'{ROOT_PATH}/staging'
 XML_PATH = f'{ROOT_PATH}/xml'
