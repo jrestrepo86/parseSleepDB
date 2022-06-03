@@ -7,6 +7,7 @@ import glob
 import os
 from datetime import datetime
 
+import numpy as np
 import scipy.io as spio
 from matplotlib.pyplot import plot
 
@@ -72,6 +73,21 @@ def write2mat(fname, out_data):
     spio.savemat(fname, out_data)
 
 
+def cropNans(out_dict):
+
+    for i, (s, val) in enumerate(out_dict.items()):
+        if i == 0:
+            nans = np.isnan(val)
+        else:
+            nans += np.isnan(val)
+        # t = np.where(np.isnan(val) == True)
+        # print(f'{s}:{val.size}:{t[0][0]}')
+    last_nan_ind = np.nonzero(nans)[0][0]
+    for s, val in out_dict.items():
+        out_dict[s] = out_dict[s][:last_nan_ind]
+    return out_dict
+
+
 def parseFile(fname):
 
     out_dict, sl = parseSignalsEdf(EDF_PATH,
@@ -91,7 +107,8 @@ def parseFile(fname):
         signal_length=sl,
         out_dict=out_dict,
         respEventsMap=[RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2])
-
+    # crop trailing nans
+    out_dict = cropNans(out_dict)
     write2mat(fname, out_dict)
 
 

@@ -36,7 +36,7 @@ def getSignals(edf_data, out_dict, signalsMap):
     for s, ch in signalsMap.items():
         out_dict.update({s: edf_data[ch][:]})
 
-    return out_dict, edf_data[0].size
+    return out_dict, edf_data[ch].size
 
 
 def SaO2_correction(out_dict):
@@ -54,6 +54,7 @@ def SaO2_correction(out_dict):
     # Interpolar NaN
     SaO2_ = NanInterp(SaO2)
     out_dict['SaO2'] = SaO2_
+
     return out_dict
 
 
@@ -98,7 +99,6 @@ def parseSignalsEdf(edf_path, fname, out_dict, signalsMap=None):
     out_dict, signal_lenght = getSignals(signals, out_dict, signalsMap)
     out_dict = SaO2_correction(out_dict)
     out_dict = HR_correction(out_dict)
-
     return out_dict, signal_lenght
 
 

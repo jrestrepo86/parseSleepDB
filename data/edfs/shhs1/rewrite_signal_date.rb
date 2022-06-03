@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
+# https://gist.github.com/remomueller/9c0f5da531fde34da91a9c013f895fe2#file-rewrite_signal_date-rb
 # gem install edfize --no-document
 # ruby rewrite_signal_date.rb
 
 require 'rubygems'
 require 'edfize'
-require 'colorize'
+require 'colorize'  # Esta versión corregida (el repo no agrega este paquete)
 
 WRONG_DATE = '00.00.00'
 CLIPPING_DATE = '01.01.85'
