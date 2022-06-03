@@ -15,9 +15,9 @@ from parseSignalsEdf import parseSignalsEdf
 from parseSleepStages import parseSleepStages
 
 ROOT_PATH = './data'
-EDF_PATH = f'{ROOT_PATH}/edf'
-CSV_PATH = f'{ROOT_PATH}/staging'
-XML_PATH = f'{ROOT_PATH}/xml'
+EDF_PATH = f'{ROOT_PATH}/edfs/shhs1'
+SLEEP_STAGING_PATH = f'{ROOT_PATH}/annotations-staging'
+NSRR_EVENTS_PATH = f'{ROOT_PATH}/annotations-events-nsrr'
 MAT_OUT_PATH = f'{ROOT_PATH}/matlab'
 # ------
 SIGNALS_MAP = {'SaO2': 0, 'HR': 1, 'OXstat': 13}
@@ -79,14 +79,14 @@ def parseFile(fname):
                                    out_dict={},
                                    signalsMap=SIGNALS_MAP)
     out_dict, _ = parseSleepStages(
-        CSV_PATH,
+        SLEEP_STAGING_PATH,
         fname,
         signal_length=sl,
         out_dict=out_dict,
         sleepStagesMaps=[SLEEP_STAGES_MAP_T1, SLEEP_STAGES_MAP_T2])
 
     out_dict = parseRespEvents(
-        XML_PATH,
+        NSRR_EVENTS_PATH,
         fname,
         signal_length=sl,
         out_dict=out_dict,
@@ -102,6 +102,9 @@ def parseDataBase(nfiles=None):
     fnames = [fn.split('/')[-1] for fn in files]
     fnames = [fn.split('.')[0] for fn in fnames]
     # parse data
+    if nfiles is not None:
+        fnames = fnames[:nfiles]
+
     for fn in fnames:
         parseFile(fn)
 
