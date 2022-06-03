@@ -8,6 +8,7 @@ parse signals in edf file
 import re
 
 import numpy as np
+import pyedflib
 from pyedflib import highlevel
 from scipy.interpolate import interp1d
 
@@ -102,10 +103,11 @@ def parseSignalsEdf(edf_path, fname, out_dict, signalsMap=None):
 
 
 if __name__ == "__main__":
-    ROOT_PATH = '/home/jrestrepo/Dropbox/inv/sleepDb/data'
-    EDF_PATH = f'{ROOT_PATH}/edf'
+    ROOT_PATH = './data'
+    EDF_PATH = f'{ROOT_PATH}/edfs/shhs1'
+    SIGNALS_MAP = {'SaO2': 0, 'HR': 1, 'OXstat': 13}
     out_dict, signal_lenght = parseSignalsEdf(EDF_PATH,
-                                              fname='shhs1-200001',
+                                              fname='shhs1-200002',
                                               out_dict={},
                                               signalsMap=SIGNALS_MAP)
     # out_dict, signal_lenght = parseSignalsEdf(

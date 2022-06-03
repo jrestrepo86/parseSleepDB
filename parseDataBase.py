@@ -16,9 +16,9 @@ from parseSleepStages import parseSleepStages
 
 ROOT_PATH = './data'
 EDF_PATH = f'{ROOT_PATH}/edfs/shhs1'
-SLEEP_STAGING_PATH = f'{ROOT_PATH}/annotations-staging'
-NSRR_EVENTS_PATH = f'{ROOT_PATH}/annotations-events-nsrr'
-MAT_OUT_PATH = f'{ROOT_PATH}/matlab'
+SLEEP_STAGING_PATH = f'{ROOT_PATH}/annotations-staging/shhs1'
+NSRR_EVENTS_PATH = f'{ROOT_PATH}/annotations-events-nsrr/shhs1'
+MAT_OUT_PATH = f'{ROOT_PATH}/matlab/shhs1'
 # ------
 SIGNALS_MAP = {'SaO2': 0, 'HR': 1, 'OXstat': 13}
 # ------
