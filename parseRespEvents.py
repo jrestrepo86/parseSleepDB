@@ -12,6 +12,15 @@ from matplotlib.pyplot import plot
 
 # structure in xml file
 XML_STRUC = ['PSGAnnotation', 'ScoredEvents', 'ScoredEvent']
+RESP_EVENTS_MAP_DEFAULT = {
+    'targetName': 'respEventsDefaultTarget',
+    'map': {
+        '1': ['Hypopnea'],
+        '2': ['Obstructive apnea'],
+        '3': ['Central Apnea'],
+        '4': ['Mixed Apnea'],
+    },
+}
 
 
 def getEvents(xml_data, signal_length, out_dict, respEventsMap):
@@ -24,17 +33,16 @@ def getEvents(xml_data, signal_length, out_dict, respEventsMap):
 
     # map respiratory events
     target = np.zeros(signal_length)
-    if respEventsMap is not None:
-        targetName = respEventsMap['targetName']
-        for map, vals in respEventsMap['map'].items():
-            for (ev_type, ev_start, ev_duration) in xml_events:
-                if any(s in ev_type for s in vals):
-                    start = int(np.round(ev_start))
-                    stop = int(np.round(ev_start + ev_duration))
-                    target[start:stop] = int(map)
-    else:
-        targetName = 'respEventsDefaultTarget'
+    if respEventsMap is None:
+        respEventsMap = RESP_EVENTS_MAP_DEFAULT
 
+    targetName = respEventsMap['targetName']
+    for map, vals in respEventsMap['map'].items():
+        for (ev_type, ev_start, ev_duration) in xml_events:
+            if any(s in ev_type for s in vals):
+                start = int(np.round(ev_start))
+                stop = int(np.round(ev_start + ev_duration))
+                target[start:stop] = int(map)
     out_dict[targetName] = target
     return out_dict
 
@@ -55,8 +63,8 @@ def parseRespEvents(xml_path,
 
 
 if __name__ == "__main__":
-    ROOT_PATH = '/home/jrestrepo/Dropbox/inv/sleepDb/data'
-    XML_PATH = f'{ROOT_PATH}/xml'
+    ROOT_PATH = './data'
+    NSRR_EVENTS_PATH = f'{ROOT_PATH}/annotations-events-nsrr/shhs1'
     RESP_EVENTS_MAP_T1 = {
         'targetName': 'targetAH',
         'map': {
@@ -68,14 +76,15 @@ if __name__ == "__main__":
     RESP_EVENTS_MAP_T2 = {
         'targetName': 'targetA',
         'map': {
-            '1': ['Hypopnea', 'Obstructive apnea']
+            '1':
+            ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
         },
     }
 
     out_dict = parseRespEvents(
-        XML_PATH,
+        NSRR_EVENTS_PATH,
         fname='shhs1-200001',
         signal_length=32520,
         out_dict={},
-        respEventsMap=[RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2])
+        respEventsMap=[RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2, None])
     pass

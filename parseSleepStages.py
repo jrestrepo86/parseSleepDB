@@ -23,6 +23,16 @@ CSV_SEP = ','
 EPOCH_DURATION = 30
 
 
+def correctState9(target):
+    '''
+    Si el estado es 9, le asigna el estado anterior
+    '''
+    inds = np.where(target == 9)[0]
+    for i in inds:
+        target[i] = target[i - 1]
+    return target
+
+
 def parseSleepStages(csv_path,
                      fname,
                      signal_length,
@@ -41,7 +51,8 @@ def parseSleepStages(csv_path,
     for stage in data_stages:
         target_xml[ind:ind + EPOCH_DURATION] = stage
         ind += EPOCH_DURATION
-
+    # corregir estado 9
+    target_xml = correctState9(target_xml)
     # map stages
     if sleepStagesMaps is not None:
         target = target_xml.copy()
@@ -58,8 +69,8 @@ def parseSleepStages(csv_path,
 
 
 if __name__ == "__main__":
-    ROOT_PATH = '/home/jrestrepo/Dropbox/inv/sleepDb/data'
-    CSV_PATH = f'{ROOT_PATH}/staging'
+    ROOT_PATH = './data'
+    SLEEP_STAGING_PATH = f'{ROOT_PATH}/annotations-staging/shhs1'
     fname = 'shhs1-200001'
     SLEEP_STAGES_MAP_T1 = {
         'targetName': 'sleepTarget1',
@@ -78,9 +89,9 @@ if __name__ == "__main__":
         }
     }
     out_dict, test_target = parseSleepStages(
-        CSV_PATH,
+        SLEEP_STAGING_PATH,
         fname='shhs1-200001',
         signal_length=32520,
         out_dict={},
-        sleepStagesMap=[SLEEP_STAGES_MAP_T1, SLEEP_STAGES_MAP_T2])
+        sleepStagesMaps=[SLEEP_STAGES_MAP_T1, SLEEP_STAGES_MAP_T2])
     pass

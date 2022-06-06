@@ -44,14 +44,15 @@ RESP_EVENTS_MAP_T1 = {
     'targetName': 'targetAH',
     'map': {
         '1': ['Hypopnea'],
-        '2': ['Obstructive apnea']
+        '2': ['Obstructive apnea'],
+        '3': ['Central Apnea'],
+        '4': ['Mixed Apnea'],
     },
 }
-
 RESP_EVENTS_MAP_T2 = {
     'targetName': 'targetA',
     'map': {
-        '1': ['Hypopnea', 'Obstructive apnea']
+        '1': ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
     },
 }
 # ------
@@ -82,7 +83,10 @@ def cropNans(out_dict):
             nans += np.isnan(val)
         # t = np.where(np.isnan(val) == True)
         # print(f'{s}:{val.size}:{t[0][0]}')
-    last_nan_ind = np.nonzero(nans)[0][0]
+    try:
+        last_nan_ind = np.nonzero(nans)[0][0]
+    except IndexError:
+        last_nan_ind = -1
     for s, val in out_dict.items():
         out_dict[s] = out_dict[s][:last_nan_ind]
     return out_dict
