@@ -53,6 +53,8 @@ def parseSleepStages(csv_path,
         ind += EPOCH_DURATION
     # corregir estado 9
     target_xml = correctState9(target_xml)
+    # calcular tiempo total de sueño
+    out_dict['tst'] = np.sum(target_xml)
     # map stages
     if sleepStagesMaps is not None:
         target = target_xml.copy()

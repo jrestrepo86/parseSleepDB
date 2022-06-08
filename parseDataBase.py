@@ -116,19 +116,24 @@ def parseFile(fname):
     write2mat(fname, out_dict)
 
 
-def parseDataBase(nfiles=None):
+def parseDataBase(n_start=None, nfiles=None):
 
     # read files name in folder
     files = glob.glob(f'{EDF_PATH}/*.edf')
     fnames = [fn.split('/')[-1] for fn in files]
     fnames = [fn.split('.')[0] for fn in fnames]
-    # parse data
+
+    if n_start is not None:
+        fnames = fnames[n_start:]
+
     if nfiles is not None:
         fnames = fnames[:nfiles]
 
+    # parse data
     for fn in fnames:
         parseFile(fn)
 
 
 if __name__ == "__main__":
-    parseDataBase()
+    # parseDataBase()
+    parseDataBase(n_start=0, nfiles=10)
