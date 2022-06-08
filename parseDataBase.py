@@ -16,6 +16,7 @@ from parseRespEvents import parseRespEvents
 from parseSignalsEdf import parseSignalsEdf
 from parseSleepStages import parseSleepStages
 
+# ROOT_PATH = '/media/data/shhs'
 ROOT_PATH = './data'
 EDF_PATH = f'{ROOT_PATH}/edfs/shhs1'
 SLEEP_STAGING_PATH = f'{ROOT_PATH}/annotations-staging/shhs1'
@@ -24,7 +25,7 @@ MAT_OUT_PATH = f'{ROOT_PATH}/matlab/shhs1'
 LOG_FILE_NAME = './errorFiles.log'
 
 # ------
-SIGNALS_MAP = {'SaO2': 0, 'HR': 1, 'OXstat': 13}
+SIGNALS_EDF_NAMES = ['SaO2', 'H.R.', 'OX stat']
 # ------
 SLEEP_STAGES_MAP_T1 = {
     'targetName': 'sleepTarget1',
@@ -101,7 +102,7 @@ def parseFile(fname):
     out_dict, sl = parseSignalsEdf(EDF_PATH,
                                    fname,
                                    out_dict={},
-                                   signalsMap=SIGNALS_MAP)
+                                   signalsNames=SIGNALS_EDF_NAMES)
     out_dict, _ = parseSleepStages(
         SLEEP_STAGING_PATH,
         fname,
@@ -123,7 +124,11 @@ def parseFile(fname):
 def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
 
     # log file
-    log_file = open(f'{LOG_FILE_NAME}', 'a')
+    log_fn = f'{LOG_FILE_NAME}'
+    if os.path.exists(log_fn):
+        os.remove(log_fn)
+    log_file = open(log_fn, 'a')
+    log_file.write(f'pid: {PID}\n')
 
     # read files name in folder
     if fnames is None:
@@ -142,17 +147,20 @@ def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
         try:
             parseFile(fn)
         except:
-            text = f'Error en archivo {fn}'
+            text = f'Error en archivo {fn}\n'
             print(text)
             log_file.write(text)
+            log_file.flus()
 
     log_file.close()
 
 
 if __name__ == "__main__":
-    print(f'pid: {os.getpid()}')
-    # parseDataBase()
+    PID = os.getpid()
+    print(f'pid: {PID}')
+    parseDataBase()
     # registros con problemas 203535
-    fnames = ['shhs1-203535', 'shhs1-203540', 'shhs1-203541']
-    parseDataBase(fnames, disableTqdm=True)
+    # fnames = ['shhs1-203535', 'shhs1-203540', 'shhs1-203541']
+    # fnames = ['shhs1-201875']
+    # parseDataBase(fnames, disableTqdm=True)
     # parseDataBase(n_start=2, nfiles=None, disableTqdm=True)

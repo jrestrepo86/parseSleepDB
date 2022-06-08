@@ -3,6 +3,25 @@
 """
 SLEEP DATABASE PARSE
 parse signals in edf file
+
+SIGNALS NAMES IN EDFS: 
+     ['SaO2',
+     'H.R.',
+     'EEG(sec)',
+     'ECG',
+     'EMG',
+     'EOG(L)',
+     'EOG(R)',
+     'EEG',
+     'SOUND',
+     'THOR RES',
+     'ABDO RES',
+     'POSITION',
+     'LIGHT',
+     'AIRFLOW',
+     'CPAP',
+     'OX stat',
+     ]
 """
 
 import re
@@ -33,6 +52,19 @@ def NanInterp(x):
     except ValueError:
         print('NanInterp, all values are nan. OXstat always >= 2')
     return x
+
+
+def getSignalsMap(signal_headers, signalsNames):
+    signalsMap = {}
+    for s in signalsNames:
+        ch = [i for i, h in enumerate(signal_headers) if s in h['label']][0]
+        # remover paréntesis del nombre
+        s = re.sub('\(.*?\)', '()', s)
+        # MATLAB no acepta . o espacio en nombre de variable
+        for a in ['.', ' ', '(', ')']:
+            s = s.replace(a, '')
+        signalsMap[s] = ch
+    return signalsMap
 
 
 def getSignals(edf_data, out_dict, signalsMap):
@@ -83,21 +115,15 @@ def HR_correction(out_dict):
     return out_dict
 
 
-def parseSignalsEdf(edf_path, fname, out_dict, signalsMap=None):
+def parseSignalsEdf(edf_path, fname, out_dict, signalsNames=None):
     fname = f'{edf_path}/{fname}.edf'
     # read edf file
     signals, signal_headers, header = highlevel.read_edf(fname)
     # obtener todas las señales del edf
-    if signalsMap is None:
-        signalsMap = {}
-        for i, s in enumerate(signal_headers):
-            sname = s['label']
-            # remover paréntesis del nombre
-            sname = re.sub('\(.*?\)', '()', sname)
-            # MATLAB no acepta . o espacio en nombre de variable
-            for a in ['.', ' ', '(', ')']:
-                sname = sname.replace(a, '')
-            signalsMap[sname] = i
+    if signalsNames is None:
+        signalsNames = [s['label'] for s in signal_headers]
+
+    signalsMap = getSignalsMap(signal_headers, signalsNames)
 
     # parse data into out_data
     out_dict, signal_lenght = getSignals(signals, out_dict, signalsMap)
@@ -109,11 +135,11 @@ def parseSignalsEdf(edf_path, fname, out_dict, signalsMap=None):
 if __name__ == "__main__":
     ROOT_PATH = './data'
     EDF_PATH = f'{ROOT_PATH}/edfs/shhs1'
-    SIGNALS_MAP = {'SaO2': 0, 'HR': 1, 'OXstat': 13}
+    SIGNALS_NAMES = ['SaO2', 'H.R.', 'OX stat']
     out_dict, signal_lenght = parseSignalsEdf(EDF_PATH,
                                               fname='shhs1-200002',
                                               out_dict={},
-                                              signalsMap=SIGNALS_MAP)
+                                              signalsNames=SIGNALS_NAMES)
     # out_dict, signal_lenght = parseSignalsEdf(
     #     EDF_PATH,
     #     fname='shhs1-200001',
