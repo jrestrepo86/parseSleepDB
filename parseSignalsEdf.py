@@ -56,23 +56,36 @@ def NanInterp(x):
 
 def getSignalsMap(signal_headers, signalsNames):
     signalsMap = {}
+    empty_signal = 0
     for s in signalsNames:
-        ch = [i for i, h in enumerate(signal_headers) if s in h['label']][0]
+        try:
+            ch = [i for i, h in enumerate(signal_headers)
+                  if s in h['label']][0]
+        except IndexError:
+            empty_signal = 1
+            print(f"ERROR: file don't have {s} signal.")
+
         # remover paréntesis del nombre
         s = re.sub('\(.*?\)', '()', s)
         # MATLAB no acepta . o espacio en nombre de variable
         for a in ['.', ' ', '(', ')']:
             s = s.replace(a, '')
-        signalsMap[s] = ch
+        if empty_signal:
+            signalsMap[s] = None
+        else:
+            signalsMap[s] = ch
     return signalsMap
 
 
 def getSignals(edf_data, out_dict, signalsMap):
 
     for s, ch in signalsMap.items():
-        out_dict.update({s: edf_data[ch][:]})
+        if ch is None:
+            out_dict.update({s: -100 * np.zeros(edf_data[0][:].size)})
+        else:
+            out_dict.update({s: edf_data[ch][:]})
 
-    return out_dict, edf_data[ch].size
+    return out_dict, edf_data[0].size
 
 
 def SaO2_correction(out_dict):

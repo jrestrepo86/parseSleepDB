@@ -144,13 +144,13 @@ def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
 
     # parse data
     for fn in tqdm(fnames, disable=disableTqdm):
-        try:
-            parseFile(fn)
-        except:
-            text = f'Error en archivo {fn}\n'
-            print(text)
-            log_file.write(text)
-            log_file.flus()
+        # try:
+        parseFile(fn)
+        # except:
+        text = f'Error en archivo {fn}'
+        print(text)
+        log_file.write(text + '\n')
+        log_file.flush()
 
     log_file.close()
 
@@ -158,9 +158,9 @@ def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
 if __name__ == "__main__":
     PID = os.getpid()
     print(f'pid: {PID}')
-    parseDataBase()
+    # parseDataBase()
     # registros con problemas 203535
     # fnames = ['shhs1-203535', 'shhs1-203540', 'shhs1-203541']
-    # fnames = ['shhs1-201875']
-    # parseDataBase(fnames, disableTqdm=True)
+    fnames = ['shhs1-201876']
+    parseDataBase(fnames, disableTqdm=True)
     # parseDataBase(n_start=2, nfiles=None, disableTqdm=True)
