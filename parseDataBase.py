@@ -81,14 +81,15 @@ def cropNans(out_dict):
             nans = np.isnan(val)
         else:
             nans += np.isnan(val)
-        # t = np.where(np.isnan(val) == True)
-        # print(f'{s}:{val.size}:{t[0][0]}')
     try:
-        last_nan_ind = np.nonzero(nans)[0][0]
+        last_nan_ind = int(np.nonzero(nans)[0][0])
     except IndexError:
-        last_nan_ind = -1
+        last_nan_ind = int(-1)
+
     for s, val in out_dict.items():
-        out_dict[s] = out_dict[s][:last_nan_ind]
+        # puede haber variables escalares en el diccionario (como tst)
+        if val.size > 1:
+            out_dict[s] = val[:last_nan_ind]
     return out_dict
 
 
@@ -135,5 +136,5 @@ def parseDataBase(n_start=None, nfiles=None):
 
 
 if __name__ == "__main__":
-    # parseDataBase()
-    parseDataBase(n_start=0, nfiles=10)
+    parseDataBase()
+    # parseDataBase(n_start=0, nfiles=10)
