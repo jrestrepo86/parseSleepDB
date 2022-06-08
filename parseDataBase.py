@@ -21,6 +21,8 @@ EDF_PATH = f'{ROOT_PATH}/edfs/shhs1'
 SLEEP_STAGING_PATH = f'{ROOT_PATH}/annotations-staging/shhs1'
 NSRR_EVENTS_PATH = f'{ROOT_PATH}/annotations-events-nsrr/shhs1'
 MAT_OUT_PATH = f'{ROOT_PATH}/matlab/shhs1'
+LOG_FILE_NAME = './errorFiles.log'
+
 # ------
 SIGNALS_MAP = {'SaO2': 0, 'HR': 1, 'OXstat': 13}
 # ------
@@ -120,8 +122,11 @@ def parseFile(fname):
 
 def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
 
+    # log file
+    log_file = open(f'{LOG_FILE_NAME}', 'a')
+
     # read files name in folder
-    if fnames is not None:
+    if fnames is None:
         files = glob.glob(f'{EDF_PATH}/*.edf')
         fnames = [fn.split('/')[-1] for fn in files]
         fnames = [fn.split('.')[0] for fn in fnames]
@@ -137,10 +142,15 @@ def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
         try:
             parseFile(fn)
         except:
-            print('Error en archivo {fn}')
+            text = f'Error en archivo {fn}'
+            print(text)
+            log_file.write(text)
+
+    log_file.close()
 
 
 if __name__ == "__main__":
+    print(f'pid: {os.getpid()}')
     # parseDataBase()
     # registros con problemas 203535
     fnames = ['shhs1-203535', 'shhs1-203540', 'shhs1-203541']
