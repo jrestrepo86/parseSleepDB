@@ -9,11 +9,12 @@ import re
 
 import numpy as np
 import pyedflib
+from matplotlib.pyplot import plot
 from pyedflib import highlevel
 from scipy.interpolate import interp1d
 
-# signal and channel number in edf
-OXSTAT_STATES = [1, 2, 3]
+# estados invalidos de OX Stat
+OXSTAT_STATES = [2, 3]
 
 
 def NanInterp(x):
@@ -23,11 +24,14 @@ def NanInterp(x):
     def t(z):
         return z.nonzero()[0]
 
-    x[nans] = interp1d(t(~nans),
-                       x[~nans],
-                       kind='linear',
-                       bounds_error=False,
-                       copy=True)(t(nans))
+    try:
+        x[nans] = interp1d(t(~nans),
+                           x[~nans],
+                           kind='linear',
+                           bounds_error=False,
+                           copy=True)(t(nans))
+    except ValueError:
+        print('NanInterp, all values are nan. OXstat always >= 2')
     return x
 
 

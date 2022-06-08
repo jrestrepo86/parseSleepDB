@@ -118,12 +118,13 @@ def parseFile(fname):
     write2mat(fname, out_dict)
 
 
-def parseDataBase(n_start=None, nfiles=None, disableTqdm=False):
+def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
 
     # read files name in folder
-    files = glob.glob(f'{EDF_PATH}/*.edf')
-    fnames = [fn.split('/')[-1] for fn in files]
-    fnames = [fn.split('.')[0] for fn in fnames]
+    if fnames is not None:
+        files = glob.glob(f'{EDF_PATH}/*.edf')
+        fnames = [fn.split('/')[-1] for fn in files]
+        fnames = [fn.split('.')[0] for fn in fnames]
 
     if n_start is not None:
         fnames = fnames[n_start:]
@@ -137,5 +138,8 @@ def parseDataBase(n_start=None, nfiles=None, disableTqdm=False):
 
 
 if __name__ == "__main__":
-    parseDataBase()
-    # parseDataBase(n_start=0, nfiles=10, disableTqdm=False)
+    # parseDataBase()
+    # registros con problemas 203535
+    fnames = ['shhs1-203535', 'shhs1-203540', 'shhs1-203541']
+    parseDataBase(fnames, disableTqdm=True)
+    # parseDataBase(n_start=2, nfiles=None, disableTqdm=True)
