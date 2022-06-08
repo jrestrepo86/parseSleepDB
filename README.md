@@ -8,6 +8,8 @@
 * numpy
 * matplotlib
 * scipy
+* tqdm
+* pip3 install --upgrade requests
 
 ## Correcciones en edfs
 

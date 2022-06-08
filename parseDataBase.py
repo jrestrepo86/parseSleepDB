@@ -10,6 +10,7 @@ from datetime import datetime
 import numpy as np
 import scipy.io as spio
 from matplotlib.pyplot import plot
+from tqdm import tqdm
 
 from parseRespEvents import parseRespEvents
 from parseSignalsEdf import parseSignalsEdf
@@ -117,7 +118,7 @@ def parseFile(fname):
     write2mat(fname, out_dict)
 
 
-def parseDataBase(n_start=None, nfiles=None):
+def parseDataBase(n_start=None, nfiles=None, disableTqdm=False):
 
     # read files name in folder
     files = glob.glob(f'{EDF_PATH}/*.edf')
@@ -131,10 +132,10 @@ def parseDataBase(n_start=None, nfiles=None):
         fnames = fnames[:nfiles]
 
     # parse data
-    for fn in fnames:
+    for fn in tqdm(fnames, disable=disableTqdm):
         parseFile(fn)
 
 
 if __name__ == "__main__":
     parseDataBase()
-    # parseDataBase(n_start=0, nfiles=10)
+    # parseDataBase(n_start=0, nfiles=10, disableTqdm=False)
