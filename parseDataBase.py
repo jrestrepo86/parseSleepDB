@@ -134,7 +134,10 @@ def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
 
     # parse data
     for fn in tqdm(fnames, disable=disableTqdm):
-        parseFile(fn)
+        try:
+            parseFile(fn)
+        except:
+            print('Error en archivo {fn}')
 
 
 if __name__ == "__main__":
