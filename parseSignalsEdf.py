@@ -24,6 +24,7 @@ SIGNALS NAMES IN EDFS:
      ]
 """
 
+import logging
 import re
 
 import numpy as np
@@ -34,6 +35,7 @@ from scipy.interpolate import interp1d
 
 # estados invalidos de OX Stat
 OXSTAT_STATES = [2, 3]
+logger = logging.getLogger(__name__)
 
 
 def NanInterp(x):
@@ -43,27 +45,25 @@ def NanInterp(x):
     def t(z):
         return z.nonzero()[0]
 
-    try:
-        x[nans] = interp1d(t(~nans),
-                           x[~nans],
-                           kind='linear',
-                           bounds_error=False,
-                           copy=True)(t(nans))
-    except ValueError:
-        print('NanInterp, all values are nan. OXstat always >= 2')
+    x[nans] = interp1d(t(~nans),
+                       x[~nans],
+                       kind='linear',
+                       bounds_error=False,
+                       copy=True)(t(nans))
     return x
 
 
-def getSignalsMap(signal_headers, signalsNames):
+def getSignalsMap(signal_headers, signalsNames, fname):
     signalsMap = {}
-    empty_signal = 0
+    empty_signal = False
     for s in signalsNames:
         try:
             ch = [i for i, h in enumerate(signal_headers)
                   if s in h['label']][0]
         except IndexError:
-            empty_signal = 1
-            print(f"ERROR: file don't have {s} signal.")
+            empty_signal = True
+            logger.info(f"file {fname} not parsed, don't have {s} signal.")
+            # print(f"ERROR: file don't have {s} signal.")
 
         # remover paréntesis del nombre
         s = re.sub('\(.*?\)', '()', s)
@@ -81,7 +81,7 @@ def getSignals(edf_data, out_dict, signalsMap):
 
     for s, ch in signalsMap.items():
         if ch is None:
-            out_dict.update({s: -100 * np.zeros(edf_data[0][:].size)})
+            out_dict['error'] = True
         else:
             out_dict.update({s: edf_data[ch][:]})
 
@@ -136,12 +136,13 @@ def parseSignalsEdf(edf_path, fname, out_dict, signalsNames=None):
     if signalsNames is None:
         signalsNames = [s['label'] for s in signal_headers]
 
-    signalsMap = getSignalsMap(signal_headers, signalsNames)
+    signalsMap = getSignalsMap(signal_headers, signalsNames, out_dict['sname'])
 
     # parse data into out_data
     out_dict, signal_lenght = getSignals(signals, out_dict, signalsMap)
-    out_dict = SaO2_correction(out_dict)
-    out_dict = HR_correction(out_dict)
+    if not out_dict['error']:
+        out_dict = SaO2_correction(out_dict)
+        out_dict = HR_correction(out_dict)
     return out_dict, signal_lenght
 
 
@@ -149,10 +150,16 @@ if __name__ == "__main__":
     ROOT_PATH = './data'
     EDF_PATH = f'{ROOT_PATH}/edfs/shhs1'
     SIGNALS_NAMES = ['SaO2', 'H.R.', 'OX stat']
-    out_dict, signal_lenght = parseSignalsEdf(EDF_PATH,
-                                              fname='shhs1-200002',
-                                              out_dict={},
-                                              signalsNames=SIGNALS_NAMES)
+    # log file
+    LOG_FILE_NAME = 'Signalslogfile.log'
+    logging.basicConfig(filename=LOG_FILE_NAME,
+                        level=logging.DEBUG,
+                        filemode='w')
+    out_dict, signal_lenght = parseSignalsEdf(
+        EDF_PATH,
+        fname='shhs1-201876',
+        out_dict={'sname': 'shhs1-201876'},
+        signalsNames=SIGNALS_NAMES)
     # out_dict, signal_lenght = parseSignalsEdf(
     #     EDF_PATH,
     #     fname='shhs1-200001',

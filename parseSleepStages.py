@@ -15,6 +15,8 @@ Sleep Heart Health Study staging annotations follow this schema:
     9: Unscored
 """
 
+import logging
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -43,7 +45,9 @@ def parseSleepStages(csv_path,
     df = pd.read_csv(fname, sep=CSV_SEP, index_col=0)
     data_stages = df['Stage']
     if EPOCH_DURATION * df.size != signal_length:
-        raise ValueError('Epoch*{EPOCH_DURATION} not equal to data length.')
+        text = f'Epoch*{EPOCH_DURATION} not equal to data length.'
+        logging.error(text)
+        raise ValueError(text)
 
     # parse all stages in file
     target_xml = np.zeros(signal_length)

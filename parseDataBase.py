@@ -4,6 +4,7 @@
 SLEEP DATABASE PARSE
 """
 import glob
+import logging
 import os
 from datetime import datetime
 
@@ -22,7 +23,6 @@ EDF_PATH = f'{ROOT_PATH}/edfs/shhs1'
 SLEEP_STAGING_PATH = f'{ROOT_PATH}/annotations-staging/shhs1'
 NSRR_EVENTS_PATH = f'{ROOT_PATH}/annotations-events-nsrr/shhs1'
 MAT_OUT_PATH = f'{ROOT_PATH}/matlab/shhs1'
-LOG_FILE_NAME = './errorFiles.log'
 
 # ------
 SIGNALS_EDF_NAMES = ['SaO2', 'H.R.', 'OX stat']
@@ -60,6 +60,14 @@ RESP_EVENTS_MAP_T2 = {
     },
 }
 # ------
+# log file
+LOG_FILE_NAME = 'PDBlogfile.log'
+logging.basicConfig(
+    filename=LOG_FILE_NAME,
+    level=logging.INFO,
+    filemode='w',
+)
+# ------
 
 
 def write2mat(fname, out_data):
@@ -80,11 +88,14 @@ def write2mat(fname, out_data):
 
 def cropNans(out_dict):
 
+    iflag = True
     for i, (s, val) in enumerate(out_dict.items()):
-        if i == 0:
-            nans = np.isnan(val)
-        else:
-            nans += np.isnan(val)
+        if isinstance(val, (np.ndarray)):
+            if iflag:
+                nans = np.isnan(val)
+                iflag = False
+            else:
+                nans += np.isnan(val)
     try:
         last_nan_ind = int(np.nonzero(nans)[0][0])
     except IndexError:
@@ -92,43 +103,41 @@ def cropNans(out_dict):
 
     for s, val in out_dict.items():
         # puede haber variables escalares en el diccionario (como tst)
-        if val.size > 1:
-            out_dict[s] = val[:last_nan_ind]
+        if isinstance(val, (np.ndarray)):
+            if val.size > 1:
+                out_dict[s] = val[:last_nan_ind]
     return out_dict
 
 
 def parseFile(fname):
-
+    # logging.info(f'{fname}')
     out_dict, sl = parseSignalsEdf(EDF_PATH,
                                    fname,
-                                   out_dict={},
+                                   out_dict={
+                                       'sname': fname,
+                                       'error': False
+                                   },
                                    signalsNames=SIGNALS_EDF_NAMES)
-    out_dict, _ = parseSleepStages(
-        SLEEP_STAGING_PATH,
-        fname,
-        signal_length=sl,
-        out_dict=out_dict,
-        sleepStagesMaps=[SLEEP_STAGES_MAP_T1, SLEEP_STAGES_MAP_T2])
+    if not out_dict['error']:
+        out_dict, _ = parseSleepStages(
+            SLEEP_STAGING_PATH,
+            fname,
+            signal_length=sl,
+            out_dict=out_dict,
+            sleepStagesMaps=[SLEEP_STAGES_MAP_T1, SLEEP_STAGES_MAP_T2])
 
-    out_dict = parseRespEvents(
-        NSRR_EVENTS_PATH,
-        fname,
-        signal_length=sl,
-        out_dict=out_dict,
-        respEventsMap=[RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2])
-    # crop trailing nans
-    out_dict = cropNans(out_dict)
-    write2mat(fname, out_dict)
+        out_dict = parseRespEvents(
+            NSRR_EVENTS_PATH,
+            fname,
+            signal_length=sl,
+            out_dict=out_dict,
+            respEventsMap=[RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2])
+        # crop trailing nans
+        out_dict = cropNans(out_dict)
+        # write2mat(fname, out_dict)
 
 
 def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
-
-    # log file
-    log_fn = f'{LOG_FILE_NAME}'
-    if os.path.exists(log_fn):
-        os.remove(log_fn)
-    log_file = open(log_fn, 'a')
-    log_file.write(f'pid: {PID}\n')
 
     # read files name in folder
     if fnames is None:
@@ -144,23 +153,14 @@ def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
 
     # parse data
     for fn in tqdm(fnames, disable=disableTqdm):
-        # try:
         parseFile(fn)
-        # except:
-        text = f'Error en archivo {fn}'
-        print(text)
-        log_file.write(text + '\n')
-        log_file.flush()
-
-    log_file.close()
 
 
 if __name__ == "__main__":
-    PID = os.getpid()
-    print(f'pid: {PID}')
-    # parseDataBase()
+    logging.warning(f'pid: {os.getpid()}')
+    parseDataBase()
     # registros con problemas 203535
     # fnames = ['shhs1-203535', 'shhs1-203540', 'shhs1-203541']
     fnames = ['shhs1-201876']
     parseDataBase(fnames, disableTqdm=True)
-    # parseDataBase(n_start=2, nfiles=None, disableTqdm=True)
+    # parseDataBase(n_start=0, nfiles=100, disableTqdm=False)
