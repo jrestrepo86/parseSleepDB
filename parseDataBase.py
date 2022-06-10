@@ -61,7 +61,7 @@ RESP_EVENTS_MAP_T2 = {
 }
 # ------
 # log file
-LOG_FILE_NAME = 'PDBlogfile.log'
+LOG_FILE_NAME = f'{MAT_OUT_PATH}/PDBlogfile.log'
 logging.basicConfig(
     filename=LOG_FILE_NAME,
     level=logging.INFO,
@@ -96,16 +96,12 @@ def cropNans(out_dict):
                 iflag = False
             else:
                 nans += np.isnan(val)
-    try:
-        last_nan_ind = int(np.nonzero(nans)[0][0])
-    except IndexError:
-        last_nan_ind = int(-1)
 
     for s, val in out_dict.items():
         # puede haber variables escalares en el diccionario (como tst)
         if isinstance(val, (np.ndarray)):
             if val.size > 1:
-                out_dict[s] = val[:last_nan_ind]
+                out_dict[s] = val[~nans]
     return out_dict
 
 
@@ -134,7 +130,8 @@ def parseFile(fname):
             respEventsMap=[RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2])
         # crop trailing nans
         out_dict = cropNans(out_dict)
-        # write2mat(fname, out_dict)
+        del out_dict['error']
+        write2mat(fname, out_dict)
 
 
 def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
@@ -161,6 +158,6 @@ if __name__ == "__main__":
     parseDataBase()
     # registros con problemas 203535
     # fnames = ['shhs1-203535', 'shhs1-203540', 'shhs1-203541']
-    fnames = ['shhs1-201876']
-    parseDataBase(fnames, disableTqdm=True)
+    # fnames = ['shhs1-200017']
+    # parseDataBase(fnames=fnames, disableTqdm=True)
     # parseDataBase(n_start=0, nfiles=100, disableTqdm=False)

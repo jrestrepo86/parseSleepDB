@@ -62,7 +62,7 @@ def getSignalsMap(signal_headers, signalsNames, fname):
                   if s in h['label']][0]
         except IndexError:
             empty_signal = True
-            logger.info(f"file {fname} not parsed, don't have {s} signal.")
+            logger.info(f"file {fname} not parsed, doesn't have {s} signal.")
             # print(f"ERROR: file don't have {s} signal.")
 
         # remover paréntesis del nombre
@@ -96,10 +96,17 @@ def SaO2_correction(out_dict):
         2: mal funcionamiento
         3: funcionamiento mediocre
     '''
+    LOWER_BOUND, UPPER_BOUND = 40, 130
     Oxstat = out_dict['OXstat']
     SaO2 = out_dict['SaO2']
     # NaN en SaO2 donde OxStat = 2 o 3
-    SaO2[np.isin(Oxstat, OXSTAT_STATES)] = np.nan
+    ind_OXstat = np.isin(Oxstat, OXSTAT_STATES)
+    # Nan donde HR supere umbrales
+    ind_lb = SaO2 < LOWER_BOUND
+    ind_ub = SaO2 > UPPER_BOUND
+    # combinar índices
+    ind = np.logical_or(ind_OXstat, np.logical_or(ind_lb, ind_ub))
+    SaO2[ind] = np.nan
     # Interpolar NaN
     SaO2_ = NanInterp(SaO2)
     out_dict['SaO2'] = SaO2_
