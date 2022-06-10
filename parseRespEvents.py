@@ -51,13 +51,14 @@ def parseRespEvents(xml_path,
                     fname,
                     signal_length,
                     out_dict,
-                    respEventsMap=None):
+                    respEventsMaps=None):
 
+    out_dict['respEventTargetMaps'] = [str(map) for map in respEventsMaps]
     # read xml
     fname = f'{xml_path}/{fname}-nsrr.xml'
     xml_data = pdx.read_xml(fname, XML_STRUC).iloc[0]
     # parse all target maps
-    for map in respEventsMap:
+    for map in respEventsMaps:
         out_dict = getEvents(xml_data, signal_length, out_dict, map)
     return out_dict
 
@@ -80,11 +81,14 @@ if __name__ == "__main__":
             ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
         },
     }
-
+    fname = 'shhs1-200001'
     out_dict = parseRespEvents(
         NSRR_EVENTS_PATH,
-        fname='shhs1-200001',
+        fname=fname,
         signal_length=32520,
-        out_dict={},
+        out_dict={
+            'fileID': fname,
+            'error': False
+        },
         respEventsMap=[RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2, None])
     pass

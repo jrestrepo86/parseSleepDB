@@ -53,7 +53,7 @@ def NanInterp(x):
     return x
 
 
-def getSignalsMap(signal_headers, signalsNames, fname):
+def getSignalsMap(signal_headers, signalsNames, fileID):
     signalsMap = {}
     empty_signal = False
     for s in signalsNames:
@@ -62,7 +62,7 @@ def getSignalsMap(signal_headers, signalsNames, fname):
                   if s in h['label']][0]
         except IndexError:
             empty_signal = True
-            logger.info(f"file {fname} not parsed, doesn't have {s} signal.")
+            logger.info(f"file {fileID} not parsed, doesn't have {s} signal.")
             # print(f"ERROR: file don't have {s} signal.")
 
         # remover paréntesis del nombre
@@ -143,7 +143,8 @@ def parseSignalsEdf(edf_path, fname, out_dict, signalsNames=None):
     if signalsNames is None:
         signalsNames = [s['label'] for s in signal_headers]
 
-    signalsMap = getSignalsMap(signal_headers, signalsNames, out_dict['sname'])
+    signalsMap = getSignalsMap(signal_headers, signalsNames,
+                               out_dict['fileID'])
 
     # parse data into out_data
     out_dict, signal_lenght = getSignals(signals, out_dict, signalsMap)
@@ -162,11 +163,14 @@ if __name__ == "__main__":
     logging.basicConfig(filename=LOG_FILE_NAME,
                         level=logging.DEBUG,
                         filemode='w')
-    out_dict, signal_lenght = parseSignalsEdf(
-        EDF_PATH,
-        fname='shhs1-201876',
-        out_dict={'sname': 'shhs1-201876'},
-        signalsNames=SIGNALS_NAMES)
+    fname = 'shhs1-200001'
+    out_dict, signal_lenght = parseSignalsEdf(EDF_PATH,
+                                              fname=fname,
+                                              out_dict={
+                                                  'fileID': fname,
+                                                  'error': False
+                                              },
+                                              signalsNames=SIGNALS_NAMES)
     # out_dict, signal_lenght = parseSignalsEdf(
     #     EDF_PATH,
     #     fname='shhs1-200001',

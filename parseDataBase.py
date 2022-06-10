@@ -24,6 +24,11 @@ SLEEP_STAGING_PATH = f'{ROOT_PATH}/annotations-staging/shhs1'
 NSRR_EVENTS_PATH = f'{ROOT_PATH}/annotations-events-nsrr/shhs1'
 MAT_OUT_PATH = f'{ROOT_PATH}/matlab/shhs1'
 
+# crear folder de salida
+if not os.path.isdir(MAT_OUT_PATH):
+    os.makedirs(MAT_OUT_PATH)
+    print(f'Archivos creados en: {MAT_OUT_PATH}')
+
 # ------
 SIGNALS_EDF_NAMES = ['SaO2', 'H.R.', 'OX stat']
 # ------
@@ -59,6 +64,12 @@ RESP_EVENTS_MAP_T2 = {
         '1': ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
     },
 }
+RESP_EVENTS_MAP_T3 = {
+    'targetName': 'desaturation',
+    'map': {
+        '1': ['SpO2 desaturation'],
+    },
+}
 # ------
 # log file
 LOG_FILE_NAME = f'{MAT_OUT_PATH}/PDBlogfile.log'
@@ -71,11 +82,6 @@ logging.basicConfig(
 
 
 def write2mat(fname, out_data):
-
-    # crear folder de salida
-    if not os.path.isdir(MAT_OUT_PATH):
-        os.makedirs(MAT_OUT_PATH)
-        print(f'Archivos creados en: {MAT_OUT_PATH}')
 
     now = datetime.now()
     current_time = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -110,7 +116,7 @@ def parseFile(fname):
     out_dict, sl = parseSignalsEdf(EDF_PATH,
                                    fname,
                                    out_dict={
-                                       'sname': fname,
+                                       'fileID': fname,
                                        'error': False
                                    },
                                    signalsNames=SIGNALS_EDF_NAMES)
@@ -122,12 +128,14 @@ def parseFile(fname):
             out_dict=out_dict,
             sleepStagesMaps=[SLEEP_STAGES_MAP_T1, SLEEP_STAGES_MAP_T2])
 
-        out_dict = parseRespEvents(
-            NSRR_EVENTS_PATH,
-            fname,
-            signal_length=sl,
-            out_dict=out_dict,
-            respEventsMap=[RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2])
+        out_dict = parseRespEvents(NSRR_EVENTS_PATH,
+                                   fname,
+                                   signal_length=sl,
+                                   out_dict=out_dict,
+                                   respEventsMaps=[
+                                       RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2,
+                                       RESP_EVENTS_MAP_T3
+                                   ])
         # crop trailing nans
         out_dict = cropNans(out_dict)
         del out_dict['error']

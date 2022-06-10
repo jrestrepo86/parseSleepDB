@@ -17,9 +17,9 @@ Sleep Heart Health Study staging annotations follow this schema:
 
 import logging
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.pyplot import plot
 
 CSV_SEP = ','
 EPOCH_DURATION = 30
@@ -41,6 +41,7 @@ def parseSleepStages(csv_path,
                      out_dict,
                      sleepStagesMaps=None):
     # read file
+    out_dict['sllepStagesTargetMaps'] = [str(map) for map in sleepStagesMaps]
     fname = f'{csv_path}/{fname}-staging.csv'
     df = pd.read_csv(fname, sep=CSV_SEP, index_col=0)
     data_stages = df['Stage']
@@ -58,11 +59,11 @@ def parseSleepStages(csv_path,
     # corregir estado 9
     target_xml = correctState9(target_xml)
     # calcular tiempo total de sueño
-    out_dict['tst'] = np.sum(target_xml)
+    out_dict['tst'] = np.sum(target_xml > 0)
     # map stages
     if sleepStagesMaps is not None:
-        target = target_xml.copy()
         for st_map in sleepStagesMaps:
+            target = target_xml.copy()
             targetName = st_map['targetName']
             for map, vals in st_map['map'].items():
                 inds = np.isin(target, vals)
@@ -96,8 +97,11 @@ if __name__ == "__main__":
     }
     out_dict, test_target = parseSleepStages(
         SLEEP_STAGING_PATH,
-        fname='shhs1-200001',
+        fname=fname,
         signal_length=32520,
-        out_dict={},
+        out_dict={
+            'fileID': fname,
+            'error': False
+        },
         sleepStagesMaps=[SLEEP_STAGES_MAP_T1, SLEEP_STAGES_MAP_T2])
     pass
