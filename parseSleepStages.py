@@ -41,7 +41,7 @@ def parseSleepStages(csv_path,
                      out_dict,
                      sleepStagesMaps=None):
     # read file
-    out_dict['sllepStagesTargetMaps'] = [str(map) for map in sleepStagesMaps]
+    out_dict['sleepStagesTargetMaps'] = [str(map) for map in sleepStagesMaps]
     fname = f'{csv_path}/{fname}-staging.csv'
     df = pd.read_csv(fname, sep=CSV_SEP, index_col=0)
     data_stages = df['Stage']
@@ -50,16 +50,18 @@ def parseSleepStages(csv_path,
         logging.error(text)
         raise ValueError(text)
 
+    # corregir estado 9
+    data_stages = correctState9(data_stages)
+    # calcular tiempo total de sueño (minutos)
+    inds_sleep = np.logical_or(data_stages == 0, data_stages == 6)
+    out_dict['tst'] = np.sum(~inds_sleep) / 2
+
     # parse all stages in file
     target_xml = np.zeros(signal_length)
     ind = 0
     for stage in data_stages:
         target_xml[ind:ind + EPOCH_DURATION] = stage
         ind += EPOCH_DURATION
-    # corregir estado 9
-    target_xml = correctState9(target_xml)
-    # calcular tiempo total de sueño
-    out_dict['tst'] = np.sum(target_xml > 0)
     # map stages
     if sleepStagesMaps is not None:
         for st_map in sleepStagesMaps:

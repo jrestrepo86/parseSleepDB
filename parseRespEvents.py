@@ -3,7 +3,6 @@
 """
 SLEEP DATABASE PARSE
 parse respiratory events
-
 """
 
 import numpy as np
@@ -81,14 +80,12 @@ if __name__ == "__main__":
             ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
         },
     }
-    fname = 'shhs1-200001'
-    out_dict = parseRespEvents(
-        NSRR_EVENTS_PATH,
-        fname=fname,
-        signal_length=32520,
-        out_dict={
-            'fileID': fname,
-            'error': False
-        },
-        respEventsMap=[RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2, None])
-    pass
+    fname = 'shhs1-203535'
+    out_dict = parseRespEvents(NSRR_EVENTS_PATH,
+                               fname=fname,
+                               signal_length=32520,
+                               out_dict={
+                                   'fileID': fname,
+                                   'error': False
+                               },
+                               respEventsMaps=[RESP_EVENTS_MAP_T2, None])
