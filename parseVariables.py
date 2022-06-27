@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 CSV_SEP = ','
-DEFAUL_VARIABLES = ['ahi_a0h3a', 'ahi_a0h3', 'SlpPrdP']
+DEFAUL_VARIABLES = ['ahi_a0h4a', 'ahi_a0h3', 'SlpPrdP']
 
 
 def parseVariables(csv_file, signalID, out_dict, variables=None):

@@ -54,29 +54,42 @@ SLEEP_STAGES_MAP_T2 = {
 }
 # ------
 RESP_EVENTS_MAP_T1 = {
-    'targetName': 'targetAH',
+    'targetName':
+    'targetAH',
     'map': {
         '1': ['Hypopnea'],
-        '2': ['Obstructive apnea'],
-        '3': ['Central Apnea'],
-        '4': ['Mixed Apnea'],
+        '2': ['Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
     },
+    'SpO2 desaturation': [
+        {
+            'event': 'Hypopnea',
+            'th': 4.0
+        },
+        {
+            'event': 'Obstructive apnea',
+            'th': 0.0
+        },
+        {
+            'event': 'Central apnea',
+            'th': 0.0
+        },
+        {
+            'event': 'Mixed apnea',
+            'th': 0.0
+        },
+    ],
 }
+
 RESP_EVENTS_MAP_T2 = {
     'targetName': 'targetA',
     'map': {
         '1': ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
     },
 }
-RESP_EVENTS_MAP_T3 = {
-    'targetName': 'desaturation',
-    'map': {
-        '1': ['SpO2 desaturation'],
-    },
-}
 # ------
 # Variables
-VARIABLES = ['ahi_a0h3a', 'SlpPrdP', 'OARBP', 'OAROP', 'OANBP', 'OANOP']
+VARIABLES = ['ahi_a0h3a', 'ahi_a0h4a', 'SlpPrdP']
+# 'ahi_a0h3a', 'ahi_a0h3a', 'SlpPrdP', 'OARBP', 'OAROP', 'OANBP', 'OANOP'
 # ------
 # log file
 LOG_FILE_NAME = f'{MAT_OUT_PATH}/PDBlogfile.log'
@@ -101,28 +114,38 @@ def write2mat(fname, out_data):
 
 def calc_ah_index(fname, signal_length, out_dict):
 
-    # AH_RESP_MAP = {
-    #     'targetName': 'resp_ahi',
-    #     'map': {
-    #         '1':
-    #         ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
-    #     },
-    # }
+    AH_RESP_MAP = {
+        'targetName':
+        'resp_ahi',
+        'map': {
+            '1': ['Hypopnea'],
+            '2': ['Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
+        },
+        'SpO2 desaturation': [
+            {
+                'event': 'Hypopnea',
+                'th': 4.0
+            },
+            {
+                'event': 'Obstructive apnea',
+                'th': 0.0
+            },
+            {
+                'event': 'Central apnea',
+                'th': 0.0
+            },
+            {
+                'event': 'Mixed apnea',
+                'th': 0.0
+            },
+        ],
+    }
     AH_SLEEP_MAP = {
         'targetName': 'sleep_ahi',
         'map': {
             '0': [0, 6],
             '1': [1, 2, 3, 4, 5],
         }
-    }
-    AH_RESP_MAP = {
-        'targetName': 'resp_ahi',
-        'map': {
-            '1': ['Hypopnea'],
-            '2': ['Obstructive apnea'],
-            '3': ['Central Apnea'],
-            '4': ['Mixed Apnea'],
-        },
     }
 
     od_, _ = parseSleepStages(SLEEP_STAGING_PATH,
@@ -144,7 +167,7 @@ def calc_ah_index(fname, signal_length, out_dict):
 
     ahi = 60 * n_ah_events / (tst)
     ahi0 = 60 * n_ah_events0 / (tst)
-    out_dict['ahi'] = ahi
+    out_dict['cal_ahi_a0h4a'] = ahi
     out_dict['ahi0'] = ahi0
 
     return out_dict
@@ -191,8 +214,8 @@ def parseFile(fname):
                                    signal_length=sl,
                                    out_dict=out_dict,
                                    respEventsMaps=[
-                                       RESP_EVENTS_MAP_T1, RESP_EVENTS_MAP_T2,
-                                       RESP_EVENTS_MAP_T3
+                                       RESP_EVENTS_MAP_T1,
+                                       RESP_EVENTS_MAP_T2,
                                    ])
         out_dict = parseVariables(VARIABLES_FILE,
                                   signalID=fname,

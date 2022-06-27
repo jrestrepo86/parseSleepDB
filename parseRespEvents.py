@@ -20,10 +20,47 @@ RESP_EVENTS_MAP_DEFAULT = {
         '4': ['Mixed Apnea'],
     },
 }
+DESATURATION_MARK_OFFSET = 30
+
+
+def getDesaturation(xml_data, signal_length, desat_item):
+
+    eventType = desat_item['event']
+    threshold = desat_item['th']
+
+    # get SpO2 desaturaion events in xml
+    desaturation = np.zeros(signal_length)
+    event = np.zeros(signal_length)
+    for i in range(xml_data.size):
+        b = xml_data.iloc[i]
+        if 'SpO2 desaturation' in b['EventConcept']:
+            SpO2Nadir = float(b['SpO2Nadir'])
+            SpO2Baseline = float(b['SpO2Baseline'])
+            if np.abs(SpO2Baseline - SpO2Nadir) >= threshold:
+                start = int(np.round(float(b['Start'])))
+                stop = int(np.round(float(b['Start']) + float(b['Duration'])))
+                desaturation[start:stop] = 1
+        if eventType in b['EventConcept']:
+            start = int(np.round(float(b['Start'])))
+            stop = int(np.round(float(b['Start']) + float(b['Duration'])))
+            event[start:stop] = 1
+
+    # match desaturation
+    desaturation = np.roll(desaturation, -DESATURATION_MARK_OFFSET)
+    desaturation[-DESATURATION_MARK_OFFSET:] = 0
+
+    return desaturation * event
 
 
 def getEvents(xml_data, signal_length, out_dict, respEventsMap):
-    # read events all events in xml
+
+    desat_filt = {}
+    if 'SpO2 desaturation' in respEventsMap:
+        for desat_item in respEventsMap['SpO2 desaturation']:
+            dfilt = getDesaturation(xml_data, signal_length, desat_item)
+            desat_filt.update({desat_item['event']: dfilt})
+
+    # read all events in xml
     xml_events = []
     for i in range(xml_data.size):
         b = xml_data.iloc[i]
@@ -42,7 +79,13 @@ def getEvents(xml_data, signal_length, out_dict, respEventsMap):
                 start = int(np.round(ev_start))
                 stop = int(np.round(ev_start + ev_duration))
                 target[start:stop] = int(map)
-    out_dict[targetName] = target
+    # filtrar según desaturación, (se podría optimizar en el gfor de arriba, pero lo
+    # dejo para debugeo fácil)
+    filter = np.zeros_like(target)
+    for filt in desat_filt.values():
+        filter = filter + filt
+    filter = filter > 0
+    out_dict[targetName] = target * filter
     return out_dict
 
 
@@ -66,20 +109,40 @@ if __name__ == "__main__":
     ROOT_PATH = './data'
     NSRR_EVENTS_PATH = f'{ROOT_PATH}/annotations-events-nsrr/shhs1'
     RESP_EVENTS_MAP_T1 = {
-        'targetName': 'targetAH',
+        'targetName':
+        'targetAH',
         'map': {
             '1': ['Hypopnea'],
-            '2': ['Obstructive apnea']
+            '2': ['Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
         },
+        'SpO2 desaturation': [
+            {
+                'event': 'Hypopnea',
+                'th': 4.0
+            },
+            {
+                'event': 'Obstructive apnea',
+                'th': 0.0
+            },
+            {
+                'event': 'Central apnea',
+                'th': 0.0
+            },
+            {
+                'event': 'Mixed apnea',
+                'th': 0.0
+            },
+        ],
     }
 
-    RESP_EVENTS_MAP_T2 = {
-        'targetName': 'targetA',
-        'map': {
-            '1':
-            ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
-        },
-    }
+    # RESP_EVENTS_MAP_T2 = {
+    #     'targetName': 'targetA',
+    #     'map': {
+    #         '1':
+    #         ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
+    #     },
+    #     'SpO2 desaturation':{'calculate':True, 'threshold':3.0},
+    # }
     fname = 'shhs1-203535'
     out_dict = parseRespEvents(NSRR_EVENTS_PATH,
                                fname=fname,
@@ -88,4 +151,4 @@ if __name__ == "__main__":
                                    'fileID': fname,
                                    'error': False
                                },
-                               respEventsMaps=[RESP_EVENTS_MAP_T2, None])
+                               respEventsMaps=[RESP_EVENTS_MAP_T1])
