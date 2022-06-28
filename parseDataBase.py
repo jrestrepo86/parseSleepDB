@@ -56,39 +56,37 @@ SLEEP_STAGES_MAP_T2 = {
 RESP_EVENTS_MAP_T1 = {
     'targetName':
     'targetAH',
-    'map': {
-        '1': ['Hypopnea'],
-        '2': ['Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
-    },
-    'SpO2 desaturation': [
+    'maps': [
         {
-            'event': 'Hypopnea',
-            'th': 4.0
+            'map': 1,
+            'event': ['Hypopnea'],
+            'SpO2 desaturation': 4.0
         },
         {
-            'event': 'Obstructive apnea',
-            'th': 0.0
-        },
-        {
-            'event': 'Central apnea',
-            'th': 0.0
-        },
-        {
-            'event': 'Mixed apnea',
-            'th': 0.0
+            'map': 2,
+            'event': ['Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
+            'SpO2 desaturation': None
         },
     ],
 }
 
 RESP_EVENTS_MAP_T2 = {
-    'targetName': 'targetA',
-    'map': {
-        '1': ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
-    },
+    'targetName':
+    'targetA',
+    'maps': [
+        {
+            'map':
+            1,
+            'event':
+            ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
+            'SpO2 desaturation':
+            None
+        },
+    ],
 }
 # ------
 # Variables
-VARIABLES = ['ahi_a0h3a', 'ahi_a0h4a', 'SlpPrdP']
+VARIABLES = ['ahi_a0h3', 'ahi_a0h4', 'SlpPrdP']
 # 'ahi_a0h3a', 'ahi_a0h3a', 'SlpPrdP', 'OARBP', 'OAROP', 'OANBP', 'OANOP'
 # ------
 # log file
@@ -117,26 +115,16 @@ def calc_ah_index(fname, signal_length, out_dict):
     AH_RESP_MAP = {
         'targetName':
         'resp_ahi',
-        'map': {
-            '1': ['Hypopnea'],
-            '2': ['Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
-        },
-        'SpO2 desaturation': [
+        'maps': [
             {
-                'event': 'Hypopnea',
-                'th': 4.0
+                'map': 1,
+                'event': ['Hypopnea'],
+                'SpO2 desaturation': 4.0
             },
             {
-                'event': 'Obstructive apnea',
-                'th': 0.0
-            },
-            {
-                'event': 'Central apnea',
-                'th': 0.0
-            },
-            {
-                'event': 'Mixed apnea',
-                'th': 0.0
+                'map': 2,
+                'event': ['Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
+                'SpO2 desaturation': None
             },
         ],
     }
@@ -254,6 +242,7 @@ if __name__ == "__main__":
     # parseDataBase()
     # registros con problemas 203535
     # fnames = ['shhs1-203535', 'shhs1-203540', 'shhs1-203541']
-    fnames = ['shhs1-203535']
+    # fnames = ['shhs1-203535']
+    fnames = ['shhs1-200001']
     parseDataBase(fnames=fnames, disableTqdm=True)
     # parseDataBase(n_start=0, nfiles=100, disableTqdm=False)
