@@ -17,6 +17,10 @@ import pandas as pd
 
 CSV_SEP = ','
 DEFAUL_VARIABLES = ['ahi_a0h4a', 'ahi_a0h3', 'SlpPrdP']
+VARIABLES = [
+    'HREMBP', 'HROP', 'HNRBP', 'HNROP', 'CARBP', 'CAROP', 'CANBP', 'CANOP',
+    'OARBP', 'OAROP', 'OANBP', 'OANOP'
+]
 
 
 def parseVariables(csv_file, signalID, out_dict, variables=None):
@@ -40,7 +44,7 @@ if __name__ == "__main__":
     ROOT_PATH = './data'
     VARIABLES_FILE = f'{ROOT_PATH}/shhs1-dataset-0.9.0.csv'
     signalID = 'shhs1-200001'
-    VARIABLES = ['ahi_a0h3a', 'SlpPrdP']
+    # VARIABLES = ['ahi_a0h3a', 'SlpPrdP']
     out_dict = parseVariables(VARIABLES_FILE,
                               signalID=signalID,
                               out_dict={

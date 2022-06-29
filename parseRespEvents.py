@@ -5,6 +5,7 @@ SLEEP DATABASE PARSE
 parse respiratory events
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas_read_xml as pdx
 from matplotlib.pyplot import plot
@@ -12,18 +13,39 @@ from matplotlib.pyplot import plot
 # structure in xml file
 XML_STRUC = ['PSGAnnotation', 'ScoredEvents', 'ScoredEvent']
 RESP_EVENTS_MAP_DEFAULT = {
-    'targetName': 'respEventsDefaultTarget',
-    'map': {
-        '1': ['Hypopnea'],
-        '2': ['Obstructive apnea'],
-        '3': ['Central Apnea'],
-        '4': ['Mixed Apnea'],
-    },
+    'targetName':
+    'respEventsDefaultTarget',
+    'maps': [
+        {
+            'map': 1,
+            'event': ['Hypopnea'],
+            'SpO2 desaturation': 4.0
+        },
+        {
+            'map': 2,
+            'event': ['Obstructive apnea'],
+            'SpO2 desaturation': 3.0
+        },
+        {
+            'map': 3,
+            'event': ['Central Apnea'],
+            'SpO2 desaturation': None
+        },
+        {
+            'map': 4,
+            'event': ['Mixed Apnea'],
+            'SpO2 desaturation': None
+        },
+    ]
 }
+# La desaturación corresponde al evento respiratorio 30 muestras atras
 DESATURATION_MARK_OFFSET = 30
 
 
 def getDesaturation(xml_data, signal_length, threshold):
+    '''
+    Reads desaturation events in the xml file and filter with threshold valrible
+    '''
 
     # get SpO2 desaturaion events in xml
     if threshold is not None:
@@ -38,7 +60,7 @@ def getDesaturation(xml_data, signal_length, threshold):
                     stop = int(
                         np.round(float(b['Start']) + float(b['Duration'])))
                     desaturation[start:stop] = 1
-        # match desaturation
+        # match desaturation with resp event
         desaturation = np.roll(desaturation, -DESATURATION_MARK_OFFSET)
         desaturation[-DESATURATION_MARK_OFFSET:] = 0
     else:
@@ -48,12 +70,11 @@ def getDesaturation(xml_data, signal_length, threshold):
 
 
 def getEvents(xml_data, signal_length, out_dict, respEventsMap):
-
-    # desat_filt = {}
-    # if 'SpO2 desaturation' in respEventsMap:
-    #     for desat_item in respEventsMap['SpO2 desaturation']:
-    #         dfilt = getDesaturation(xml_data, signal_length, desat_item)
-    #         desat_filt.update({desat_item['event']: dfilt})
+    '''
+    Reads respiratorry events in the xml file and maps those events following
+    the respiratory events map (respEventMap), then filters the target signal
+    generated with the SpO2 desaturation events.
+    '''
 
     # read all events in xml
     xml_events = []
@@ -76,28 +97,17 @@ def getEvents(xml_data, signal_length, out_dict, respEventsMap):
         if 'SpO2 desaturation' in map:
             spo2_th = map['SpO2 desaturation']
         else:
-            spo2_th = 0.0
+            spo2_th = None
         temp_target = np.zeros_like(target)
         for (ev_type, ev_start, ev_duration) in xml_events:
             if any(s in ev_type for s in event):
                 start = int(np.round(ev_start))
                 stop = int(np.round(ev_start + ev_duration))
                 temp_target[start:stop] = int(key)
+        # filtrar con desaturación
         filter = getDesaturation(xml_data, signal_length, spo2_th)
         target = target + filter * temp_target
 
-    # for map, vals in respEventsMap['map'].items():
-    #     for (ev_type, ev_start, ev_duration) in xml_events:
-    #         if any(s in ev_type for s in vals):
-    #             start = int(np.round(ev_start))
-    #             stop = int(np.round(ev_start + ev_duration))
-    #             target[start:stop] = int(map)
-    # # filtrar según desaturación, (se podría optimizar en el gfor de arriba, pero lo
-    # # dejo para debugeo fácil)
-    # filter = np.zeros_like(target)
-    # for filt in desat_filt.values():
-    #     filter = filter + filt
-    # filter = filter > 0
     out_dict[targetName] = target
     return out_dict
 
@@ -138,14 +148,6 @@ if __name__ == "__main__":
         ]
     }
 
-    # RESP_EVENTS_MAP_T2 = {
-    #     'targetName': 'targetA',
-    #     'map': {
-    #         '1':
-    #         ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
-    #     },
-    #     'SpO2 desaturation':{'calculate':True, 'threshold':3.0},
-    # }
     fname = 'shhs1-203535'
     out_dict = parseRespEvents(NSRR_EVENTS_PATH,
                                fname=fname,
