@@ -270,7 +270,7 @@ def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
         print(fn)
         var_df = parseFile(fn, var_df)
 
-    var_df.to_csv('test.csv')
+    var_df.to_csv(VARS_FILE_NAME)
 
 
 if __name__ == "__main__":
