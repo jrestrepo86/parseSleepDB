@@ -37,56 +37,73 @@ if not os.path.isdir(MAT_OUT_PATH):
 # ------
 SIGNALS_EDF_NAMES = ['SaO2', 'H.R.', 'OX stat']
 # ------
-SLEEP_STAGES_MAP_T1 = {
-    'targetName': 'sleepTarget1',
-    'map': {
-        '0': [0, 6],
-        '1': [1, 2, 3, 4, 5],
-    }
-}
-SLEEP_STAGES_MAP_T2 = {
-    'targetName': 'sleepTarget2',
-    'map': {
-        '0': [0, 6],
-        '1': [1],
-        '2': [2],
-        '3': [3],
-        '4': [4],
-        '5': [5],
-    }
-}
+SLEEP_STAGES_MAPS = [
+    {
+        'targetName': 'sleepTarget1',
+        'map': {
+            '0': [0, 6],
+            '1': [1, 2, 3, 4, 5],
+        }
+    },
+    {
+        'targetName': 'sleepTarget2',
+        'map': {
+            '0': [0, 6],
+            '1': [1],
+            '2': [2],
+            '3': [3],
+            '4': [4],
+            '5': [5],
+        }
+    },
+]
 # ------
-RESP_EVENTS_MAP_T1 = {
-    'targetName':
-    'targetAH',
-    'maps': [
-        {
-            'map': 1,
-            'event': ['Hypopnea'],
-            'SpO2 desaturation': 4.0
-        },
-        {
-            'map': 2,
-            'event': ['Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
-            'SpO2 desaturation': None
-        },
-    ],
-}
-
-RESP_EVENTS_MAP_T2 = {
-    'targetName':
-    'targetA',
-    'maps': [
-        {
+RESP_EVENTS_MAPS = [
+    {
+        'targetName':
+        'targetA0',
+        'maps': [{
             'map':
             1,
             'event':
             ['Hypopnea', 'Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
             'SpO2 desaturation':
             None
-        },
-    ],
-}
+        }]
+    },
+    {
+        'targetName':
+        'targetA0H4',
+        'maps': [
+            {
+                'map': 1,
+                'event': ['Hypopnea'],
+                'SpO2 desaturation': 4.0
+            },
+            {
+                'map': 2,
+                'event': ['Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
+                'SpO2 desaturation': None
+            },
+        ]
+    },
+    {
+        'targetName':
+        'targetA0H3',
+        'maps': [
+            {
+                'map': 1,
+                'event': ['Hypopnea'],
+                'SpO2 desaturation': 3.0
+            },
+            {
+                'map': 2,
+                'event': ['Obstructive apnea', 'Central Apnea', 'Mixed Apnea'],
+                'SpO2 desaturation': None
+            },
+        ]
+    },
+]
 # ------
 # Variables
 VARIABLES = ['ahi_a0h3', 'ahi_a0h4', 'SlpPrdP']
@@ -203,21 +220,17 @@ def parseFile(fname, var_df):
                                    },
                                    signalsNames=SIGNALS_EDF_NAMES)
     if not out_dict['error']:
-        out_dict, _ = parseSleepStages(
-            SLEEP_STAGING_PATH,
-            fname,
-            signal_length=sl,
-            out_dict=out_dict,
-            sleepStagesMaps=[SLEEP_STAGES_MAP_T1, SLEEP_STAGES_MAP_T2])
+        out_dict, _ = parseSleepStages(SLEEP_STAGING_PATH,
+                                       fname,
+                                       signal_length=sl,
+                                       out_dict=out_dict,
+                                       sleepStagesMaps=SLEEP_STAGES_MAPS)
 
         out_dict = parseRespEvents(NSRR_EVENTS_PATH,
                                    fname,
                                    signal_length=sl,
                                    out_dict=out_dict,
-                                   respEventsMaps=[
-                                       RESP_EVENTS_MAP_T1,
-                                       RESP_EVENTS_MAP_T2,
-                                   ])
+                                   respEventsMaps=RESP_EVENTS_MAPS)
         out_dict = parseVariables(VARIABLES_FILE,
                                   signalID=fname,
                                   out_dict=out_dict,
@@ -267,7 +280,6 @@ def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
     # parse data
     var_df = pd.DataFrame()
     for fn in tqdm(fnames, disable=disableTqdm):
-        print(fn)
         var_df = parseFile(fn, var_df)
 
     var_df.to_csv(VARS_FILE_NAME)

@@ -32,6 +32,8 @@ def buildVariablesFile(csv_file, signalID, df_in, calc_vars):
     for v in VARIABLES:
         new_row[v] = df.loc[id, v]
 
-    df_in = df_in.append(new_row, ignore_index=True)
+    df_in = pd.concat([df_in, pd.DataFrame([new_row])],
+                      axis=0,
+                      ignore_index=True)
 
     return df_in
