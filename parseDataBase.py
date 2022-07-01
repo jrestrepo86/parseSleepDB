@@ -29,7 +29,7 @@ VARIABLES_FILE = f'{ROOT_PATH}/shhs1-dataset-0.9.0.csv'
 MAT_OUT_PATH = f'{ROOT_PATH}/matlab/shhs1'
 VARS_FILE_NAME = f'{MAT_OUT_PATH}/00_variables.csv'
 LENGTHS_FILE_NAME0 = f'{MAT_OUT_PATH}/00_allLengths.csv'
-LENGTHS_FILE_NAME1 = f'{MAT_OUT_PATH}/lengths.mat'
+LENGTHS_FILE_NAME1 = f'{MAT_OUT_PATH}/sequenceLengths.mat'
 
 # crear folder de salida
 if not os.path.isdir(MAT_OUT_PATH):
@@ -303,7 +303,7 @@ def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
         'Length': slc
     })
     lengths_df.to_csv(LENGTHS_FILE_NAME0)
-    spio.savemat(LENGTHS_FILE_NAME1, {'fname': fn, 'Length': slc})
+    spio.savemat(LENGTHS_FILE_NAME1, {'fname': fn, 'sequenceLengths': slc})
 
 
 if __name__ == "__main__":
