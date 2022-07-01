@@ -27,7 +27,9 @@ SLEEP_STAGING_PATH = f'{ROOT_PATH}/annotations-staging/shhs1'
 NSRR_EVENTS_PATH = f'{ROOT_PATH}/annotations-events-nsrr/shhs1'
 VARIABLES_FILE = f'{ROOT_PATH}/shhs1-dataset-0.9.0.csv'
 MAT_OUT_PATH = f'{ROOT_PATH}/matlab/shhs1'
-VARS_FILE_NAME = f'{ROOT_PATH}/matlab/shhs1/variables.csv'
+VARS_FILE_NAME = f'{MAT_OUT_PATH}/00_variables.csv'
+LENGTHS_FILE_NAME0 = f'{MAT_OUT_PATH}/00_allLengths.csv'
+LENGTHS_FILE_NAME1 = f'{MAT_OUT_PATH}/lengths.mat'
 
 # crear folder de salida
 if not os.path.isdir(MAT_OUT_PATH):
@@ -207,10 +209,10 @@ def cropNans(out_dict):
         if isinstance(val, (np.ndarray)):
             if val.size > 1:
                 out_dict[s] = val[~nans]
-    return out_dict
+    return out_dict, np.sum(~nans)
 
 
-def parseFile(fname, var_df):
+def parseFile(fname, var_df, lengths_array):
     # logging.info(f'{fname}')
     out_dict, sl = parseSignalsEdf(EDF_PATH,
                                    fname,
@@ -246,7 +248,7 @@ def parseFile(fname, var_df):
                                  th=3)
 
         # crop trailing nans
-        out_dict = cropNans(out_dict)
+        out_dict, crop_sl = cropNans(out_dict)
         del out_dict['error']
         write2mat(fname, out_dict)
 
@@ -260,7 +262,8 @@ def parseFile(fname, var_df):
                                     signalID=fname,
                                     df_in=var_df,
                                     calc_vars=calc_vars)
-    return var_df
+        lengths_array.append((fname, sl, crop_sl))
+    return var_df, lengths_array
 
 
 def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
@@ -278,11 +281,29 @@ def parseDataBase(fnames=None, n_start=None, nfiles=None, disableTqdm=False):
         fnames = fnames[:nfiles]
 
     # parse data
+    fnames = sorted(fnames)
     var_df = pd.DataFrame()
+    lengths_array = []
     for fn in tqdm(fnames, disable=disableTqdm):
-        var_df = parseFile(fn, var_df)
+        var_df, lengths_array = parseFile(fn, var_df, lengths_array)
 
     var_df.to_csv(VARS_FILE_NAME)
+
+    fn = []
+    sl = []
+    slc = []
+    for f, s, c in lengths_array:
+        fn.append(f)
+        sl.append(s)
+        slc.append(c)
+
+    lengths_df = pd.DataFrame({
+        'fname': fn,
+        'OriginalLength': sl,
+        'Length': slc
+    })
+    lengths_df.to_csv(LENGTHS_FILE_NAME0)
+    spio.savemat(LENGTHS_FILE_NAME1, {'fname': fn, 'Length': slc})
 
 
 if __name__ == "__main__":
